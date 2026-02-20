@@ -3,17 +3,31 @@
 // Arduino Uno R4 WiFi Sketch
 // ============================================
 
+// ============================================
+// SENSOR SELECTION — choose ONE temperature source
+// Comment out USE_DHT11 to use the Thermistor (default)
+// Uncomment USE_DHT11 to use the DHT11 sensor instead
+// ============================================
+// #define USE_DHT11
+
 #include <WiFiS3.h>
 #include <ArduinoHttpClient.h>
 #include "Arduino_LED_Matrix.h"
 #include <ArduinoJson.h>
 
+#ifdef USE_DHT11
+  #include <DHT.h>
+  #define DHT_PIN  A2        // DHT11 data pin
+  #define DHT_TYPE DHT11
+  DHT dht(DHT_PIN, DHT_TYPE);
+#endif
+
 // ============================================
 // CONFIGURATION - UPDATE THESE!
 // ============================================
-const char* WIFI_SSID     = "YOUR_WIFI_SSID";
-const char* WIFI_PASSWORD  = "YOUR_WIFI_PASSWORD";
-const char* SERVER_IP      = "192.168.1.100";  // Your PC's local IP
+const char* WIFI_SSID     = "RIP YES KING!!!!";
+const char* WIFI_PASSWORD  = "hamburger";
+const char* SERVER_IP      = "10.230.155.52";  // Your PC's local IP
 const int   SERVER_PORT    = 80;
 const String API_BASE      = "/lumos/";  // Path on server
 
@@ -22,7 +36,7 @@ const String API_BASE      = "/lumos/";  // Path on server
 // ============================================
 // Sensors
 const int PHOTORESISTOR_PIN = A0;
-const int THERMISTOR_PIN    = A1;
+const int THERMISTOR_PIN    = A1;  // Used when USE_DHT11 is NOT defined
 const int BUTTON_PIN        = 2;
 
 // Outputs
@@ -80,6 +94,13 @@ void setup() {
     pinMode(RGB_GREEN_PIN, OUTPUT);
     pinMode(RGB_BLUE_PIN, OUTPUT);
     pinMode(BUZZER_PIN, OUTPUT);
+
+#ifdef USE_DHT11
+    dht.begin();
+    Serial.println("[SENSOR] Using DHT11 for temperature");
+#else
+    Serial.println("[SENSOR] Using Thermistor for temperature");
+#endif
 
     // Start with blue LED
     setRGB(0x44, 0x88, 0xFF);
@@ -157,16 +178,27 @@ void readAndSendSensors() {
     int lightRaw = analogRead(PHOTORESISTOR_PIN);
     float lightPercent = (lightRaw / 1023.0) * 100.0;
 
-    // Read thermistor (temperature in Celsius)
+    // --- Temperature Reading ---
+    float temperature = NAN;
+
+#ifdef USE_DHT11
+    // DHT11 path
+    temperature = dht.readTemperature();
+    if (isnan(temperature)) {
+        Serial.println("[DHT11] Failed to read temperature!");
+        temperature = 0.0;
+    }
+#else
+    // Thermistor path (Steinhart-Hart)
     int thermRaw = analogRead(THERMISTOR_PIN);
     float resistance = SERIES_RESISTOR / (1023.0 / thermRaw - 1.0);
-    float temperature;
     temperature = resistance / THERMISTOR_NOMINAL;
     temperature = log(temperature);
     temperature /= B_COEFFICIENT;
     temperature += 1.0 / (TEMPERATURE_NOMINAL + 273.15);
     temperature = 1.0 / temperature;
     temperature -= 273.15;
+#endif
 
     Serial.println("--- Sensor Reading ---");
     Serial.print("Temperature: ");

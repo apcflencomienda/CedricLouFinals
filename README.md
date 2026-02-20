@@ -51,22 +51,25 @@ CedricLouFinals/
    const char* SERVER_IP      = "192.168.1.100";  // Your PC's local IP
    ```
 3. Install required libraries: **ArduinoHttpClient**, **ArduinoJson**
+   - If using DHT11: also install **DHT sensor library** by Adafruit (includes Adafruit Unified Sensor)
 4. Select board: **Arduino Uno R4 WiFi**
-5. Upload!
+5. To switch to DHT11: uncomment `// #define USE_DHT11` at the top of `lumos.ino`
+6. Upload!
 
 ---
 
 ## 🔧 Hardware Wiring
 
-| Component      | Arduino Pin |
-|---------------|-------------|
-| Photoresistor  | A0 (with 10k resistor voltage divider) |
-| Thermistor     | A1 (with 10k resistor voltage divider) |
-| Push Button    | D2 (INPUT_PULLUP) |
-| RGB LED Red    | D9 |
-| RGB LED Green  | D10 |
-| RGB LED Blue   | D11 |
-| Active Buzzer  | D7 |
+| Component | Arduino Pin | Notes |
+|---|---|---|
+| Photoresistor | A0 | With 10kΩ resistor voltage divider |
+| Thermistor | A1 | With 10kΩ resistor voltage divider *(default temp sensor)* |
+| DHT11 *(optional)* | A2 | Single data wire + 10kΩ pull-up to 5V; uncomment `#define USE_DHT11` |
+| Push Button | D2 | INPUT_PULLUP (other leg to GND) |
+| RGB LED Red | D9 | Via ~220Ω resistor |
+| RGB LED Green | D10 | Via ~220Ω resistor |
+| RGB LED Blue | D11 | Via ~220Ω resistor |
+| Active Buzzer | D7 | (+) to D7, (−) to GND |
 
 ---
 
