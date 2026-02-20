@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lumos — AI Environment Companion</title>
+    <meta name="description"
+        content="Lumos: Your AI-driven workspace companion. Monitor sensors, chat with your room, and let AI optimize your environment.">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        dark: { 900: '#0a0a0f', 800: '#111118', 700: '#1a1a24', 600: '#252530' },
+                        accent: { DEFAULT: '#6366f1', light: '#818cf8', dark: '#4f46e5' },
+                        glow: { blue: '#3b82f6', purple: '#8b5cf6', emerald: '#10b981', amber: '#f59e0b', rose: '#f43f5e' }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="bg-dark-900 text-white min-h-screen font-['Inter']">
+
+    <!-- Ambient Background Glow -->
+    <div class="fixed inset-0 pointer-events-none overflow-hidden">
+        <div id="ambientGlow"
+            class="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full opacity-10 blur-[120px] transition-all duration-[3000ms]"
+            style="background: #6366f1;"></div>
+        <div
+            class="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-glow-purple opacity-5 blur-[120px]">
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="relative z-10 max-w-7xl mx-auto px-4 py-6">
+
+        <!-- Header -->
+        <header class="mb-8 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <div class="relative">
+                    <div
+                        class="w-12 h-12 rounded-xl bg-gradient-to-br from-accent to-glow-purple flex items-center justify-center text-2xl shadow-lg shadow-accent/20">
+                        💡
+                    </div>
+                    <div id="statusDot"
+                        class="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-glow-emerald border-2 border-dark-900 animate-pulse">
+                    </div>
+                </div>
+                <div>
+                    <h1
+                        class="text-2xl font-bold bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+                        Lumos</h1>
+                    <p class="text-sm text-gray-500">AI Environment Companion</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <div id="locationBadge"
+                    class="px-4 py-2 rounded-full bg-dark-700/80 border border-gray-700/50 text-sm text-gray-300 flex items-center gap-2 backdrop-blur-sm">
+                    <span class="text-base">📍</span>
+                    <span id="currentLocation">Loading...</span>
+                </div>
+                <div id="connectionStatus"
+                    class="px-3 py-2 rounded-full bg-dark-700/80 border border-gray-700/50 text-xs text-gray-400 flex items-center gap-2 backdrop-blur-sm">
+                    <span class="w-2 h-2 rounded-full bg-glow-emerald animate-pulse"></span>
+                    Connected
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+            <!-- Left Column: Sensor Cards -->
+            <div class="lg:col-span-2 space-y-6">
+
+                <!-- Status Card (AI Mood) -->
+                <div id="moodCard" class="glass-card rounded-2xl p-6 border transition-all duration-1000"
+                    style="border-color: rgba(99, 102, 241, 0.3);">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-lg font-semibold text-gray-200">Environment Status</h2>
+                        <span id="lastUpdate" class="text-xs text-gray-500">Waiting for data...</span>
+                    </div>
+                    <div class="flex items-center gap-6">
+                        <div id="moodOrb"
+                            class="w-20 h-20 rounded-2xl flex items-center justify-center text-3xl transition-all duration-1000 shadow-lg"
+                            style="background: linear-gradient(135deg, #6366f1, #8b5cf6); box-shadow: 0 0 30px rgba(99, 102, 241, 0.3);">
+                            🌟
+                        </div>
+                        <div class="flex-1">
+                            <p id="aiMessage" class="text-xl font-medium text-white mb-1">Waiting for sensors...</p>
+                            <p id="aiSubtext" class="text-sm text-gray-400">Connect your Arduino R4 to start monitoring
+                            </p>
+                        </div>
+                        <div id="buzzerIndicator"
+                            class="hidden px-3 py-1.5 rounded-full bg-glow-rose/20 border border-glow-rose/40 text-glow-rose text-xs font-medium animate-pulse">
+                            🔔 ALERT
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sensor Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+                    <!-- Temperature Card -->
+                    <div class="glass-card rounded-2xl p-5 border border-gray-800/50">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center gap-2">
+                                <div
+                                    class="w-8 h-8 rounded-lg bg-glow-amber/15 flex items-center justify-center text-lg">
+                                    🌡️</div>
+                                <span class="text-sm font-medium text-gray-300">Temperature</span>
+                            </div>
+                            <span class="text-xs text-gray-500" id="tempTrend">—</span>
+                        </div>
+                        <div class="flex items-baseline gap-1">
+                            <span id="tempValue" class="text-4xl font-bold text-white tabular-nums">—</span>
+                            <span class="text-lg text-gray-400">°C</span>
+                        </div>
+                        <div class="mt-3 h-1.5 rounded-full bg-dark-600 overflow-hidden">
+                            <div id="tempBar"
+                                class="h-full rounded-full bg-gradient-to-r from-glow-blue to-glow-amber transition-all duration-700"
+                                style="width: 0%"></div>
+                        </div>
+                        <div class="flex justify-between mt-1 text-xs text-gray-600">
+                            <span>10°C</span>
+                            <span>40°C</span>
+                        </div>
+                    </div>
+
+                    <!-- Light Level Card -->
+                    <div class="glass-card rounded-2xl p-5 border border-gray-800/50">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center gap-2">
+                                <div
+                                    class="w-8 h-8 rounded-lg bg-glow-blue/15 flex items-center justify-center text-lg">
+                                    💡</div>
+                                <span class="text-sm font-medium text-gray-300">Light Level</span>
+                            </div>
+                            <span class="text-xs text-gray-500" id="lightTrend">—</span>
+                        </div>
+                        <div class="flex items-baseline gap-1">
+                            <span id="lightValue" class="text-4xl font-bold text-white tabular-nums">—</span>
+                            <span class="text-lg text-gray-400">%</span>
+                        </div>
+                        <div class="mt-3 h-1.5 rounded-full bg-dark-600 overflow-hidden">
+                            <div id="lightBar"
+                                class="h-full rounded-full bg-gradient-to-r from-gray-600 to-glow-blue transition-all duration-700"
+                                style="width: 0%"></div>
+                        </div>
+                        <div class="flex justify-between mt-1 text-xs text-gray-600">
+                            <span>Dark</span>
+                            <span>Bright</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sensor History -->
+                <div class="glass-card rounded-2xl p-6 border border-gray-800/50">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-lg font-semibold text-gray-200">Sensor History</h2>
+                        <button onclick="loadSensorHistory()"
+                            class="text-xs text-accent hover:text-accent-light transition-colors">Refresh</button>
+                    </div>
+                    <div id="sensorHistory" class="space-y-2 max-h-[300px] overflow-y-auto custom-scrollbar">
+                        <div class="text-center text-gray-500 text-sm py-8">No sensor data yet</div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Right Column: Chat -->
+            <div class="lg:col-span-1">
+                <div class="glass-card rounded-2xl border border-gray-800/50 flex flex-col h-[calc(100vh-10rem)]">
+
+                    <!-- Chat Header -->
+                    <div class="p-4 border-b border-gray-800/50">
+                        <div class="flex items-center gap-3">
+                            <div
+                                class="w-9 h-9 rounded-xl bg-gradient-to-br from-glow-purple to-accent flex items-center justify-center text-lg shadow-md shadow-glow-purple/20">
+                                💬
+                            </div>
+                            <div>
+                                <h2 class="text-sm font-semibold text-gray-200">Chat with Room</h2>
+                                <p class="text-xs text-gray-500">Tell Lumos where you are</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Chat Messages -->
+                    <div id="chatMessages" class="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
+                        <!-- Welcome message -->
+                        <div class="flex gap-2">
+                            <div
+                                class="w-7 h-7 rounded-lg bg-accent/20 flex items-center justify-center text-sm flex-shrink-0 mt-0.5">
+                                🤖</div>
+                            <div class="chat-bubble-ai rounded-2xl rounded-tl-sm px-4 py-2.5 max-w-[85%]">
+                                <p class="text-sm text-gray-200">Hi! I'm Lumos, your AI environment companion. Tell me
+                                    where you are, and I'll optimize the environment for you! 🌟</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Chat Input -->
+                    <div class="p-4 border-t border-gray-800/50">
+                        <form id="chatForm" class="flex gap-2">
+                            <input type="text" id="chatInput" placeholder="Try: 'I'm in the bedroom'"
+                                class="flex-1 bg-dark-700/80 border border-gray-700/50 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 transition-all">
+                            <button type="submit" id="sendBtn"
+                                class="w-10 h-10 rounded-xl bg-accent hover:bg-accent-dark text-white flex items-center justify-center transition-all hover:shadow-lg hover:shadow-accent/20 active:scale-95">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                                </svg>
+                            </button>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Footer -->
+        <footer class="mt-8 text-center text-xs text-gray-600">
+            <p>Lumos · AI Environment Companion · Powered by Arduino R4 WiFi & Google Gemini</p>
+            <p class="mt-1">Encomienda & Valdez — Embedded Systems Finals</p>
+        </footer>
+
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>

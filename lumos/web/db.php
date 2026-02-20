@@ -5,7 +5,7 @@
 
 // --- GEMINI API KEY ---
 // Get your free key at: https://aistudio.google.com/apikey
-define('Default Gemini API Key', 'AIzaSyB8iRUJ4nLApglLYJp65F6lWtGeZKyEgsA');
+define('Default Gemini API Key', 'AIzaSyCffVgVFiOvg_ft2rk8_CTZmAaNp25Bulw');
 
 // --- Database Config ---
 define('DB_HOST', 'localhost');
