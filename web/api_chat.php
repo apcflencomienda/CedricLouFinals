@@ -92,12 +92,12 @@ Respond naturally and helpfully. If the user mentions moving to a new location, 
 Keep your response concise (2-3 sentences max). Be warm and conversational.
 
 After your conversational response, on a new line, provide a JSON object for the Arduino:
-{\"color_hex\": \"#RRGGBB\", \"message\": \"short LED text (max 30 chars)\", \"buzzer\": false}
+{\"color_hex\": \"#RRGGBB\", \"message\": \"short LED text (max 30 chars)\", \"buzzer\": true/false (only true if conditions are extreme/dangerous)}
 
 The color should reflect the mood of the conversation or the new environment setting.";
 
-// --- Call Gemini ---
-$aiResponse = callGemini($prompt);
+// --- Call Llama ---
+$aiResponse = callLlama($prompt);
 
 // --- Separate conversational response from JSON ---
 $parts = preg_split('/(\{[^}]+\})\s*$/', $aiResponse, -1, PREG_SPLIT_DELIM_CAPTURE);

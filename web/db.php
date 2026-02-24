@@ -3,9 +3,8 @@
 // Lumos - Database & Config
 // ============================================
 
-// --- GEMINI API KEY ---
-// Get your free key at: https://aistudio.google.com/apikey
-define('Default Gemini API Key', 'AIzaSyCffVgVFiOvg_ft2rk8_CTZmAaNp25Bulw');
+// --- LLAMA API KEY (Production) ---
+define('LLAMA_API_KEY', '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');
 
 // --- Database Config ---
 define('DB_HOST', 'localhost');
@@ -14,7 +13,7 @@ define('DB_PASS', '');
 define('DB_NAME', 'lumos_db');
 
 // --- Connect to MySQL ---
-$conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+$conn = new mysqli("localhost", "root", "", "lumos_db", 3307);
 if ($conn->connect_error) {
     http_response_code(500);
     die(json_encode(['error' => 'Database connection failed: ' . $conn->connect_error]));

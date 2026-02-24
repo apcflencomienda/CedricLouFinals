@@ -1,56 +1,68 @@
 <?php
 // ============================================
-// Lumos - Gemini API Helper
+// Lumos - Llama API Helper (Production)
 // ============================================
 
 require_once 'db.php';
 
 /**
- * Call Google Gemini API with a prompt
+ * Call Llama API via Groq
  * @param string $prompt The prompt to send
  * @return string The AI response text
  */
-function callGemini($prompt)
+function callLlama($prompt)
 {
-    $url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' . constant('Default Gemini API Key');
+    $url = 'https://api.groq.com/openai/v1/chat/completions';
 
     $data = [
-        'contents' => [
-            [
-                'parts' => [
-                    ['text' => $prompt]
-                ]
-            ]
+        'model' => 'llama-3.3-70b-versatile',
+        'messages' => [
+            ['role' => 'user', 'content' => $prompt]
         ],
-        'generationConfig' => [
-            'temperature' => 0.7,
-            'maxOutputTokens' => 256
-        ]
+        'temperature' => 0.7,
+        'max_tokens' => 256
     ];
 
     $ch = curl_init($url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'Content-Type: application/json',
+        'Authorization: Bearer ' . LLAMA_API_KEY
+    ]);
     curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
     curl_setopt($ch, CURLOPT_TIMEOUT, 30);
 
     $response = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curlError = curl_error($ch);
     curl_close($ch);
 
-    if ($httpCode !== 200) {
-        error_log("Gemini API error (HTTP $httpCode): $response");
-        return json_encode(['color_hex' => '#FFFFFF', 'message' => 'AI unavailable', 'buzzer' => false]);
+    if ($curlError) {
+        error_log("Llama CURL error: $curlError");
+        return "Error: Could not reach API";
     }
+
+    if ($httpCode !== 200) {
+        error_log("Llama API error (HTTP $httpCode): $response");
+        return "Error: API returned HTTP $httpCode";
+    }
+
+    // LOG EVERYTHING FOR DEBUGGING
+    error_log("RAW RESPONSE FROM LLAMA: " . $response);
 
     $result = json_decode($response, true);
 
-    if (isset($result['candidates'][0]['content']['parts'][0]['text'])) {
-        return $result['candidates'][0]['content']['parts'][0]['text'];
+    if (isset($result['choices'][0]['message']['content'])) {
+        return $result['choices'][0]['message']['content'];
     }
 
-    return json_encode(['color_hex' => '#FFFFFF', 'message' => 'No response', 'buzzer' => false]);
+    error_log("Llama response missing expected fields: " . json_encode($result));
+    return json_encode([
+        "color_hex" => "#FFFFFF",
+        "message" => "Error: Parse Failed",
+        "buzzer" => false
+    ]);
 }
 ?>

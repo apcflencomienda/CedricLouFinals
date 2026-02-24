@@ -65,8 +65,8 @@ Guidelines:
 - Adjust thresholds based on location (bedroom = relaxed, office = productive, kitchen = alert)
 - buzzer should only be true for extreme temps (>35°C or <10°C) or very dark conditions in dangerous contexts";
 
-// --- Call Gemini ---
-$aiResponse = callGemini($prompt);
+// --- Call Llama ---
+$aiResponse = callLlama($prompt);
 
 // --- Parse AI response ---
 // Clean up response - remove any markdown code fences
