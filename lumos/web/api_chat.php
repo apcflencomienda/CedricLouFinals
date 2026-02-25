@@ -4,7 +4,7 @@
 // Frontend sends chat messages here
 // ============================================
 
-require_once 'api_gemini.php';
+// ...existing code...
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
@@ -96,8 +96,7 @@ After your conversational response, on a new line, provide a JSON object for the
 
 The color should reflect the mood of the conversation or the new environment setting.";
 
-// --- Call Gemini ---
-$aiResponse = callGemini($prompt);
+// ...existing code...
 
 // --- Separate conversational response from JSON ---
 $parts = preg_split('/(\{[^}]+\})\s*$/', $aiResponse, -1, PREG_SPLIT_DELIM_CAPTURE);

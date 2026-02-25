@@ -4,7 +4,7 @@
 // Arduino POSTs sensor data here
 // ============================================
 
-require_once 'api_gemini.php';
+// ...existing code...
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
@@ -35,9 +35,7 @@ $stmt->execute();
 $sensorLogId = $conn->insert_id;
 $stmt->close();
 
-// --- Get current location context ---
-$locResult = $conn->query("SELECT value FROM settings WHERE key_name = 'current_location'");
-$location = 'default';
+// ...existing code...
 if ($row = $locResult->fetch_assoc()) {
     $location = $row['value'];
 }
@@ -97,6 +95,7 @@ echo json_encode([
     'sensor_log_id' => $sensorLogId,
     'color_hex' => $colorHex,
     'message' => $message,
-    'buzzer' => $buzzer
+    'buzzer' => $buzzer,
+    'ai_raw' => $aiResponse  // DEBUG: remove after testing
 ]);
 ?>

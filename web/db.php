@@ -3,8 +3,23 @@
 // Lumos - Database & Config
 // ============================================
 
+// --- Load .env file for secrets ---
+$envPath = __DIR__ . '/../env/.env';
+if (file_exists($envPath)) {
+    $lines = file($envPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        if (strpos(trim($line), '#') === 0) continue;
+        list($name, $value) = array_map('trim', explode('=', $line, 2));
+        if (!getenv($name)) {
+            putenv("{$name}={$value}");
+            $_ENV[$name] = $value;
+        }
+    }
+}
+
 // --- LLAMA API KEY (Production) ---
-define('LLAMA_API_KEY', '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');
+// NOTE: The Groq API key is loaded securely from env/.env and never hardcoded in this file.
+define('LLAMA_API_KEY', getenv('LLAMA_API_KEY'));
 
 // --- Database Config ---
 define('DB_HOST', 'localhost');

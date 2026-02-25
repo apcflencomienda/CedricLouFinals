@@ -57,7 +57,6 @@ function callLlama($prompt)
     if (isset($result['choices'][0]['message']['content'])) {
         return $result['choices'][0]['message']['content'];
     }
-
     error_log("Llama response missing expected fields: " . json_encode($result));
     return json_encode([
         "color_hex" => "#FFFFFF",

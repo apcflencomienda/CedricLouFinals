@@ -4,7 +4,7 @@
 // Arduino POSTs sensor data here
 // ============================================
 
-require_once 'api_gemini.php';
+// ...existing code...
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
@@ -65,8 +65,7 @@ Guidelines:
 - Adjust thresholds based on location (bedroom = relaxed, office = productive, kitchen = alert)
 - buzzer should only be true for extreme temps (>35°C or <10°C) or very dark conditions in dangerous contexts";
 
-// --- Call Gemini ---
-$aiResponse = callGemini($prompt);
+// ...existing code...
 
 // --- Parse AI response ---
 // Clean up response - remove any markdown code fences

@@ -7,6 +7,7 @@ const API_BASE = './';  // Same directory as index.html
 // State
 let previousTemp = null;
 let previousLight = null;
+let lastKnownTimestamp = null;
 
 // ============================================
 // INITIALIZATION
@@ -17,8 +18,8 @@ document.addEventListener('DOMContentLoaded', () => {
     loadChatHistory();
     loadLocation();
 
-    // Auto-refresh every 5 seconds
-    setInterval(loadLatestData, 5000);
+    // Fast refresh to catch button presses quickly
+    setInterval(loadLatestData, 2000);
     setInterval(loadLocation, 10000);
 
     // Chat form handler
@@ -34,7 +35,13 @@ async function loadLatestData() {
         const json = await res.json();
 
         if (json.success && json.data) {
+            const isNew = lastKnownTimestamp && json.data.created_at !== lastKnownTimestamp;
             updateSensorDisplay(json.data);
+            if (isNew) {
+                showToast('New reading from Arduino!');
+                loadSensorHistory();
+            }
+            lastKnownTimestamp = json.data.created_at;
         }
     } catch (err) {
         console.error('Failed to load latest data:', err);
@@ -303,6 +310,24 @@ async function loadLocation() {
 // ============================================
 // HELPERS
 // ============================================
+function showToast(msg) {
+    const existing = document.getElementById('lumos-toast');
+    if (existing) existing.remove();
+
+    const toast = document.createElement('div');
+    toast.id = 'lumos-toast';
+    toast.textContent = msg;
+    toast.style.cssText = `
+        position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+        background: #1e293b; color: #e2e8f0; border: 1px solid #334155;
+        border-left: 4px solid #6366f1; padding: 12px 20px;
+        border-radius: 10px; font-size: 14px; font-weight: 500;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+        animation: slideIn 0.3s ease;
+    `;
+    document.body.appendChild(toast);
+    setTimeout(() => { if (toast.parentNode) toast.remove(); }, 3000);
+}
 function timeAgo(date) {
     const seconds = Math.floor((new Date() - date) / 1000);
     if (seconds < 10) return 'just now';
