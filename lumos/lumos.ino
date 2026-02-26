@@ -9,13 +9,10 @@
 // Uncomment USE_DHT11 to use the DHT11 sensor instead
 // ============================================
 
-
 #include "Arduino_LED_Matrix.h"
 #include <ArduinoHttpClient.h>
 #include <ArduinoJson.h>
 #include <WiFiS3.h>
-
-
 
 // ============================================
 // CONFIGURATION - UPDATE THESE!
@@ -24,7 +21,7 @@ const char *WIFI_SSID = "PLDTHOMEFIBRspM8A";
 const char *WIFI_PASSWORD = "Superadm!n1234";
 const char *SERVER_IP = "192.168.1.9"; // Your PC's local IP
 const int SERVER_PORT = 80;
-const String API_BASE = "/lumos/"; // Path on server
+const String API_BASE = "/lumos/web/"; // Path on server
 
 // ============================================
 // PIN DEFINITIONS
@@ -43,8 +40,9 @@ const int BUZZER_PIN = 13;    // Active Buzzer
 
 // Thermistor: set R0 to the nominal resistance of YOUR thermistor at 25°C
 // Arduino basic kit = 10kΩ NTC (model: MF52-103)
-const float THERMISTOR_R0 = 10000.0;  // 10kΩ NTC (standard Arduino kit thermistor)
-const float THERMISTOR_B  = 3950.0;   // Beta coefficient
+const float THERMISTOR_R0 =
+    10000.0;                       // 10kΩ NTC (standard Arduino kit thermistor)
+const float THERMISTOR_B = 3950.0; // Beta coefficient
 
 // ============================================
 // GLOBALS
@@ -87,7 +85,6 @@ void setup() {
   pinMode(RGB_BLUE_PIN, OUTPUT);
   pinMode(BUZZER_PIN, OUTPUT);
 
-
   Serial.println("[SENSOR] Using Thermistor for temperature");
 
   // Start with blue LED
@@ -108,13 +105,12 @@ void setup() {
 void loop() {
   unsigned long currentTime = millis();
 
-
-
   // Debug: print raw button pin state every 3 seconds
   static unsigned long lastBtnDebug = 0;
   if (currentTime - lastBtnDebug >= 3000) {
     Serial.print("[BTN] Pin 2 raw state: ");
-    Serial.println(digitalRead(BUTTON_PIN) == LOW ? "LOW (pressed)" : "HIGH (not pressed)");
+    Serial.println(digitalRead(BUTTON_PIN) == LOW ? "LOW (pressed)"
+                                                  : "HIGH (not pressed)");
     lastBtnDebug = currentTime;
   }
 
@@ -160,6 +156,10 @@ void connectWiFi() {
 
   if (WiFi.status() == WL_CONNECTED) {
     Serial.println("\nWiFi Connected!");
+
+    // The Arduino R4 needs this delay to grab a DHCP IP from the router
+    delay(2500);
+
     Serial.print("IP Address: ");
     Serial.println(WiFi.localIP());
   } else {
@@ -177,7 +177,8 @@ void readAndSendSensors() {
   // Bright = LDR low resistance = lower A0 voltage = lower raw value → invert
   int lightRaw = analogRead(PHOTORESISTOR_PIN);
   float lightVoltage = lightRaw * (5.0 / 1023.0);
-  float lightPercent = (1.0 - (lightRaw / 1023.0)) * 100.0; // Inverted: low raw = bright
+  float lightPercent =
+      (1.0 - (lightRaw / 1023.0)) * 100.0; // Inverted: low raw = bright
 
   // Read Thermistor temperature (Celsius, using voltage divider)
   // Wiring: 5V → Thermistor → A1 → R_FIXED(10kΩ) → GND
@@ -185,34 +186,49 @@ void readAndSendSensors() {
   float thermVoltage = thermistorRaw * (5.0 / 1023.0);
   float R_FIXED = 10000.0; // 10kΩ resistor from A1 to GND
   // Clamp to avoid division by zero
-  if (thermVoltage < 0.01) thermVoltage = 0.01;
-  if (thermVoltage > 4.99) thermVoltage = 4.99;
+  if (thermVoltage < 0.01)
+    thermVoltage = 0.01;
+  if (thermVoltage > 4.99)
+    thermVoltage = 4.99;
   // Thermistor on TOP: 5V → Thermistor → A1 → 10kΩ → GND
   // Rt = R_fixed * (Vcc - Va) / Va
   float resistance = R_FIXED * (5.0 - thermVoltage) / thermVoltage;
   // Steinhart-Hart simplified (Beta equation)
   float steinhart;
-  steinhart = resistance / THERMISTOR_R0;        // (R/Ro)
-  steinhart = log(steinhart);                    // ln(R/Ro)
-  steinhart /= THERMISTOR_B;                     // 1/B * ln(R/Ro)
-  steinhart += 1.0 / (25.0 + 273.15);            // + (1/To), To=298.15K
-  steinhart = 1.0 / steinhart;                   // Invert
-  float temperature = steinhart - 273.15;        // Convert to Celsius
+  steinhart = resistance / THERMISTOR_R0; // (R/Ro)
+  steinhart = log(steinhart);             // ln(R/Ro)
+  steinhart /= THERMISTOR_B;              // 1/B * ln(R/Ro)
+  steinhart += 1.0 / (25.0 + 273.15);     // + (1/To), To=298.15K
+  steinhart = 1.0 / steinhart;            // Invert
+  float temperature = steinhart - 273.15; // Convert to Celsius
 
   Serial.println("--- Sensor Reading ---");
-  Serial.print("Thermistor Raw: "); Serial.println(thermistorRaw);
-  Serial.print("Thermistor Voltage: "); Serial.println(thermVoltage, 3);
-  Serial.print("Thermistor Resistance: "); Serial.print(resistance, 1); Serial.println(" ohm");
-  Serial.print("Temperature: "); Serial.print(temperature, 1); Serial.println(" C");
+  Serial.print("Thermistor Raw: ");
+  Serial.println(thermistorRaw);
+  Serial.print("Thermistor Voltage: ");
+  Serial.println(thermVoltage, 3);
+  Serial.print("Thermistor Resistance: ");
+  Serial.print(resistance, 1);
+  Serial.println(" ohm");
+  Serial.print("Temperature: ");
+  Serial.print(temperature, 1);
+  Serial.println(" C");
   if (temperature < -10.0 || temperature > 60.0) {
-    Serial.println("[WARN] Temperature out of range — check thermistor wiring/R0 constant!");
-    Serial.print("  Expected R at 25C: "); Serial.println(THERMISTOR_R0);
-    Serial.print("  Measured R: "); Serial.println(resistance, 1);
+    Serial.println("[WARN] Temperature out of range — check thermistor "
+                   "wiring/R0 constant!");
+    Serial.print("  Expected R at 25C: ");
+    Serial.println(THERMISTOR_R0);
+    Serial.print("  Measured R: ");
+    Serial.println(resistance, 1);
     Serial.println("  If temp is too cold, increase THERMISTOR_R0 to 100000.0");
   }
-  Serial.print("Photoresistor Raw: "); Serial.println(lightRaw);
-  Serial.print("Photoresistor Voltage: "); Serial.println(lightVoltage, 3);
-  Serial.print("Light Level: "); Serial.print(lightPercent, 1); Serial.println(" %");
+  Serial.print("Photoresistor Raw: ");
+  Serial.println(lightRaw);
+  Serial.print("Photoresistor Voltage: ");
+  Serial.println(lightVoltage, 3);
+  Serial.print("Light Level: ");
+  Serial.print(lightPercent, 1);
+  Serial.println(" %");
 
   // Send to server
   sendSensorData(temperature, lightPercent);
@@ -256,6 +272,8 @@ void sendSensorData(float temp, float light) {
   } else {
     Serial.println("[ERROR] Server returned error");
   }
+
+  http.stop();
 }
 
 // ============================================
@@ -269,6 +287,8 @@ void pollForCommand() {
 
   int statusCode = http.responseStatusCode();
   String response = http.responseBody();
+
+  http.stop();
 
   Serial.print("[POLL] Status: ");
   Serial.print(statusCode);
@@ -329,9 +349,9 @@ void parseAndApplyCommand(String jsonResponse) {
 void setRGB(int r, int g, int b) {
   // Dim factor: 0.0 (off) to 1.0 (full brightness). Adjust as needed.
   const float BRIGHTNESS = 0.15;
-  analogWrite(RGB_RED_PIN,   (int)(r * BRIGHTNESS));
+  analogWrite(RGB_RED_PIN, (int)(r * BRIGHTNESS));
   analogWrite(RGB_GREEN_PIN, (int)(g * BRIGHTNESS));
-  analogWrite(RGB_BLUE_PIN,  (int)(b * BRIGHTNESS));
+  analogWrite(RGB_BLUE_PIN, (int)(b * BRIGHTNESS));
 }
 
 void applyColor(String hexColor) {
